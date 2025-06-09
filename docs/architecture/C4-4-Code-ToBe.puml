@@ -1,0 +1,23 @@
+@startuml
+
+class Sensor {
+    +ID: int
+    +Name: string
+    +Type: SensorType
+    +Location: string
+    +Value: float64
+    +Unit: string
+    +Status: string
+    +LastUpdated: time.Time
+    +CreatedAt: time.Time
+}
+
+enum SensorType {
+    +temperature
+    +humidity
+    +motion
+}
+
+Sensor "1" --> "*" SensorType : uses
+
+@enduml

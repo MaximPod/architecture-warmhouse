@@ -1,0 +1,56 @@
+@startuml "Теплый дом"
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(customer, "Пользователи")
+
+Enterprise_Boundary(c0, "Теплый дом") {
+ System(smarthome, "Система Умный Дом", "")
+ System(controlpath, "Система управления устройствами клиентов", "")
+ System(infra, "инфраструктурный домен", "")
+ System(datalake, "система хранения телеметрии и алертинг", "")
+ System(communicate, "Система служебной коммуникации", "")
+
+ System(support, "Система службы поддержки пользователей", "")
+ System(market, "Система отдела продаж", "")
+ System(analytic, "Система аналитики", "")
+ System(account, "Система бухгалтерского учета", "")
+
+ System(notification, "Система уведомлений", "Сообщения пользователям: смс, мессенджеры, почта")
+
+}
+
+System_Ext(IoT, "IoT Cloud Api", "Облачный интерфейс другого оборудования")
+System_Ext(heating_system, "Контроллер отопления с датчиками", "")
+System_Ext(message_system, "Внешние сервисы уведомлений", "Почта, СМС, Мессенджеры")
+
+Lay_D(controlpath, infra)
+
+Lay_D(infra, support)
+Lay_D(infra, market)
+Lay_D(infra, analytic)
+Lay_D(infra, account)
+Lay_D(infra, communicate)
+Lay_D(infra, datalake)
+Lay_D(infra, notification)
+
+
+Lay_D(heating_system, IoT)
+
+Rel_R(customer, smarthome, "Web, Mobile, Bot, Voice, AI-agent", "")
+BiRel_D(smarthome, infra, "", "")
+BiRel_D(controlpath, infra, "", "")
+Rel_R(controlpath, heating_system, "Управление отопителем", "legacy")
+Rel_R(controlpath, IoT, "Управление другими устройствами", "")
+
+
+BiRel_D(market, infra, "", "")
+BiRel_D(support, infra, "", "")
+BiRel_D(analytic, infra, "", "")
+Rel_D(infra, account,"", "")
+BiRel_D(infra, datalake, "", "")
+BiRel_D(infra, communicate, "", "")
+BiRel_D(infra, notification, "", "")
+Rel_D(notification, message_system, "", "")
+
+
+@enduml

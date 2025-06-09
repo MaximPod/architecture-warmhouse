@@ -1,0 +1,25 @@
+@startuml "Теплый дом"
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Context.puml
+
+
+Person(customer, "Пользователи", "100 веб-клиентов")
+
+Enterprise_Boundary(c0, "Теплый дом") {
+    System(smarthome, "smart home", "Система управления отоплением")
+
+    System(temperature, "temperature service", "Система получения данных от датчиков")
+}
+
+System_Ext(sensors, "Датчики", "Коллекция датчиков температуры")
+System_Ext(warmer, "Контроллер отопления", "Устройство управления отопителем")
+
+Rel_R(customer, smarthome, "Неформализованный контракт", "REST")
+Rel_R(smarthome, temperature, "Запросы получения температуры по месту или id датчика", "REST")
+Rel_R(temperature, sensors, "неизвестный протокол", "")
+Rel_L(sensors,  smarthome, "заявлен процесс регистрации датчика при включении", "REST")
+Lay_D(sensors, warmer)
+Rel_R(X, warmer, "Управление отопителем", "не известно")
+
+@enduml

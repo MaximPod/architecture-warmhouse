@@ -1,0 +1,45 @@
+@startuml
+title Диаграмма сущностей системы умного дома
+
+left to right direction
+
+entity "Пользователи" as users {
+* id : int PK
+created_at : datetime
+updated_at : datetime
+}
+
+entity "Дома" as houses {
+* id : int PK
+house_name : varchar
+owner_id : int FK users(id)
+created_at : datetime
+updated_at : datetime
+}
+
+entity "Комнаты" as rooms {
+* id : int PK
+room_name : varchar
+house_id : int FK houses(id)
+created_at : datetime
+updated_at : datetime
+}
+
+entity "Устройства" as devices {
+* id : int PK
+device_name : varchar
+room_id : int FK rooms(id)
+is_active : bool
+type : varchar
+value: float
+unit: varchar
+status: varchar
+created_at : datetime
+updated_at : datetime
+}
+
+users ||--o{ houses : владеет
+houses ||--o{ rooms : содержит
+rooms ||--o{ devices : содержит
+
+@enduml

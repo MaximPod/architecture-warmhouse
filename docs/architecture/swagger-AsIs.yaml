@@ -1,0 +1,365 @@
+openapi: 3.0.0
+info:
+  title: Smart Home API Documentation
+  version: '1.0'
+servers:
+  - url: http://localhost:8080/api/v1'
+    
+paths:
+  /sensors:
+    get:
+      summary: |
+       Получает списка всех сенсоров из БД, 
+       для каджого сенсора типа "temperature" выполняет http запрос к внешнему сервису температуры 
+       и получает значения статуса и значение температуры 
+      tags: [sensors]
+      responses:
+        '200':
+          description: Список сенсоров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sensor'
+        '500':
+          description: Произошла ошибка на сервере
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Создает новый сенсор в БД и возвращает его структуру
+      tags: [sensors]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorCreate'
+      responses:
+        '201':
+          description: Новый датчик успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '400':
+          description: "неверный формат запроса"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+            description: Произошла ошибка на сервере
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+                  
+  /sensors/{id}:
+    get:
+        summary: | 
+          Получает параметры сенсора по его ID из БД и 
+          делает http запрос к сервису температуры для получения актуального значения и статуса
+        tags: [sensors]
+        parameters:
+        - name: id
+          in: path
+          description: ID сенсора
+          required: true
+          schema:
+            type: integer
+        responses:
+          '200':
+            description: Список сенсоров
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Sensor'
+          '500':
+            description: Произошла ошибка на сервере
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '400':
+            description: Invalid sensor ID
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '404':
+            description: Sensor not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+    put:
+      summary: Обновляет информацию о сенсоре по его ID в БД
+      tags: [sensors]
+      parameters:
+        - name: id
+          in: path
+          description: ID сенсора
+          required: true
+          schema:
+            type: integer
+        - name: sensorUpdate
+          in: body
+          required: true
+          description: Объект с данными для обновления датчика
+          schema:
+            $ref: '#/components/schemas/SensorUpdate'
+      responses:
+        '200':
+          description: Обновление параметров датчика в БД
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sensor'
+        '400':
+          description: "Invalid sensor ID"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+            description: Произошла ошибка на сервере
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+      
+      
+    patch:
+      summary: Обновляет значение и статус датчика по его ID в БД
+      tags: [sensors]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - name: request
+          in: body
+          required: true
+          description: Объект с данными для обновления датчика
+          properties:
+            value:
+              type: number
+              description: Значение датчика
+            status:
+              type: string
+              description: Статус датчика
+      responses:
+        '200':
+          description: Обновление параметров датчика в БД
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                      type: string
+                      example: Sensor value updated successfully
+
+        '400':
+          description: "Invalid sensor ID"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+            description: Произошла ошибка на сервере
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'        
+      
+      
+    delete:
+      summary: Удаляет указанный сенсор из БД
+      tags: [sensors]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sensor deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Sensor deleted successfully
+        '400':
+          description: "Invalid sensor ID"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+            description: Произошла ошибка на сервере
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+  /temperature:
+    get:
+      summary: Проксирует запрос к сервису температуры и возвращает текущую температуру местности по его местоположению
+      tags: [temperature]
+      parameters:
+        - in: query
+          name: location
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Значение температуры
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemperatureResponse'
+                
+        '400':
+          description: Location is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+            description: Failed to fetch temperature data
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+tags:
+  - name: sensors
+    description: Операции с датчиками
+  - name: temperature
+    description: Получение значения температуры
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        
+    Sensor:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Идентификатор датчика
+        name: 
+          type: string
+          description: Наименование датчика
+        "type": 
+          type: string
+          description: Тип датчика
+          enum:
+            - temperature
+        location: 
+          type: string
+          description: Местоположение датчика
+        value: 
+          title: number
+          description: Значение датчика
+        unit: 
+          type: string
+          description: Единица измерения датчика
+        status: 
+          type: string
+          description: Статус датчика
+        last_updated: 
+          type: string
+          format: date-time
+          description: Время последнего обновления значения датчика
+        created_at: 
+          type: string
+          format: date-time
+          description: Время создания датчика
+        
+    TemperatureResponse:
+      type: object
+      properties:
+        value:
+          type: number
+          description: Значение температуры
+        unit:
+          type: string
+          description: Единица измерения температуры
+        timestamp:
+          type: string
+          format: date-time
+          description: Время получения данных о температуре
+        location:
+          type: string
+          description: Местоположение датчика температуры
+        status:
+          type: string
+          description: Статус датчика температуры
+        # sensor_id:
+        #   type: integer
+        #   description: Идентификатор датчика температуры
+        # sensor_type:
+        #   type: string
+        #   description: Тип датчика температуры
+        description:
+          type: string
+          description: Описание датчика температуры
+    
+    SensorCreate:
+     type: object
+     properties:
+      name:
+        type: string
+        description: Наименование датчика
+        required: true
+      "type":
+        type: string
+        description: Тип датчика
+        required: true
+        enum:
+          - temperature
+      location:
+        type: string
+        description: Местоположение датчика
+        required: true
+      unit:
+        type: string
+        description: Единица измерения датчика
+        
+    SensorUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование датчика
+        "type":
+          type: string
+          description: Тип датчика
+          enum:
+            - temperature
+        location:
+          type: string
+          description: Местоположение датчика
+        value: 
+          title: number
+          description: Значение датчика
+          required: true
+        unit:
+          type: string
+          description: Единица измерения датчика
+        status:
+            type: string
+            description: Статус датчика температуры
+     
