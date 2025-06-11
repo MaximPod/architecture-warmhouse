@@ -1,0 +1,33 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Компонентная диаграмма для приложения Telemetry Reciever
+LAYOUT_LEFT_RIGHT()
+
+Container_Boundary(c1, "Telemetry Reciever") {
+    Component(api, "REST API", "")
+    Component(validator, "validator", "Валидация данных")
+    Component(dto, "DTO", "Преобразование к Event модели")
+    Component(pub, "Event Pub", "Паблишер событий")
+    Component(sub, "Command Sub", "Применик команд")
+    Component(subh, "Command Handler", "Обработчик команд")
+    Component(db, "DB", "Хранилище правил валидатора")
+    
+} 
+
+System_Ext(ad, "Active devices", "Оборудование отправляющее телеметрию", "push")
+System_Ext(infra, "Pub\Sub BUS", "Командная и событийная шины")
+
+Lay_D(validator,subh )
+
+Rel(ad, api, "Telemetry Data", "")
+Rel(api, validator, "Data", "")
+Rel(validator, dto, "Data", "")
+Rel(dto, pub, "Event", "")
+Rel(pub, infra, "Event", "")
+Rel_L(infra, sub, "Command", "")
+Rel_L(sub, subh, "Command", "")
+Rel_L(subh, db, "Update rule", "")
+Rel_L(subh, validator, "Update rule", "")
+
+@enduml

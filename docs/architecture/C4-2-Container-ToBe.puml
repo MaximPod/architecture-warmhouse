@@ -1,0 +1,41 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+
+title Контейнерная диаграмма для контекста Управление устройствами клиентов
+
+Container(command_bus, "Command Bus", "", "Шина команд")
+Container(message_bus, "Event Bus", "", "Шина событий")
+
+System_Boundary(c1, "Control Path") {
+    Container(hc, "Heater Control", "Go", "Управляет легаси отопителями")
+    Container(cloud_adapter, "Adapter Cloud Provider N", "Go", "Управление через облако провайдера устройств")
+    Container(tr, "Telemetry Reciever", "Go", "Принимает данные о телеметрии от активных устройств")
+    Container(tp, "Telemetry Pusher", "Go", "Принимает данные о телеметрии от пассивных устройств")
+  
+} 
+
+System_Ext(ad, "Active devices", "Оборудование отправляющее телеметрию", "push")
+System_Ext(pd, "Passive devices", "Оборудование отдающее телеметрию", "pool")
+System_Ext(heater, "Heater Controller", "Контроллер отопления Легаси")
+System_Ext(cloud, "Cloud Provider", "Облачный провайдер устройств")
+
+Rel(command_bus, hc, "Command Bus", "")
+Rel(hc, message_bus, "Event Bus", "")
+Rel(hc, heater, "REST", "")
+
+Rel(command_bus, cloud_adapter, "Command Bus", "")
+Rel(cloud_adapter, message_bus, "Event Bus", "")
+Rel(cloud_adapter, cloud, "Протокол провайдера", "")
+
+
+Rel(command_bus, tr, "Command Bus", "")
+Rel(tr, message_bus, "Event Bus", "")
+Rel(ad, tr, "Прием данных", "")
+
+Rel(command_bus, tp, "Command Bus", "")
+Rel(tp, message_bus, "Event Bus", "")
+Rel(tp, pd, "Опрос устройств", "")
+
+@enduml

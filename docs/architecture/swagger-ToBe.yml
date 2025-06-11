@@ -1,0 +1,110 @@
+swagger: "2.0"
+info:
+  title: SmartHome
+  description: "Smart Home BFF API"
+  version: 0.0.1
+
+#host: splendor.dev.gitlab.com
+#basePath: /
+
+securityDefinitions:
+  APIKeyHeader:
+    type: apiKey
+    in: header
+    name: X-Client-Token
+    
+security:
+- APIKeyHeader: []
+
+paths:
+  /api/backend_events:
+    get:
+      tags:
+      - general
+      summary: SSE channel with messages from backend
+      operationId: BackendEvents
+      description: |
+        Канал событий и данных от бэкенда. На сваггере зависает, т.к. некому события слать 
+        Формат сообщения в канале: 
+        event: "SmartMessage" 
+        data: {"message": "hello", "id": "1"}
+      produces:
+      - text/event-stream
+      parameters:
+        - in: query
+          name: sid
+          description: "session ID"
+          required: true
+          type: string
+      responses: 
+        200:
+          description: "OK"
+        500: 
+          description: "Internal Server Error"
+          
+  /api/frontend_events:
+    post:
+      tags:
+      - general
+      summary: Event endpoint with messages from frontend
+      operationId: FrontendEvents
+      description: Эндпойнт событий и данных от фронтенда
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: "event as json"
+          required: true
+          schema:
+            $ref: "#/definitions/FrontendEvent"
+
+      responses: 
+        200:
+          description: "OK"
+        500: 
+          description: "Internal Server Error"
+
+definitions:
+  FrontendEvent:
+    type: "object"
+    required:
+      - event
+      - data
+    properties:
+      event:
+        type: string
+        example: "RequestMessage"
+        description: "Запрос списка датчиков пользователя"
+      data:
+        type: string
+        example: '{"id":"1", "Event":"UserRequestSensorList", "created_at":"2024.12.31 15:00:01"}'
+        description: "Данные события в json объекте"
+
+
+  BaskendEvent:
+    type: "object"
+    required:
+      - event
+      - data
+    properties:
+      event:
+        type: string
+        example: "UserSensorList"
+        description: "Список оборудования умного дома пользователя"
+      data:
+        type: string
+        example: '{id:1, created_at:"2024.12.31 15:00", sensors:[......]}'
+        description: "Список оборудования в json объекте"
+
+  ErrAuth:
+    type: string
+    example: ошибка аутентификаци
+  ErrData:
+    type: string
+    example: ошибка входных данных
+  Error:
+    type: string
+    example: Внутренняя ошибка сервера
